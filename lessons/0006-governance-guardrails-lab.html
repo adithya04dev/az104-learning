@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Governance guardrails — Lab</title>
+<style>
+:root{--ink:#172033;--muted:#5c6678;--paper:#f7f9fc;--line:#dce3ef;--blue:#1769e0;--green:#187b5a;--amber:#a85e00}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 6% 0,#e1f8ef 0,transparent 31%),var(--paper);color:var(--ink);font:16px/1.68 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}nav{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;padding:12px max(22px,calc((100vw - 960px)/2));background:rgba(247,249,252,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}nav a,a{color:var(--blue);text-decoration:none;font-weight:700}main{max-width:960px;margin:auto;padding:64px 24px 90px}.kicker{text-transform:uppercase;letter-spacing:.13em;color:var(--green);font-size:.78rem;font-weight:850}h1{font-size:clamp(2.5rem,6vw,4.6rem);line-height:1;letter-spacing:-.05em;margin:.4rem 0 1rem}.lede{font-size:1.18rem;color:var(--muted);max-width:780px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 38px}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:.35rem .7rem;font-size:.82rem;font-weight:700}.safety{background:#fff4e4;border:1px solid #efd3a6;border-radius:18px;padding:20px;margin:24px 0}.safety strong{color:var(--amber)}h2{font-size:1.7rem;letter-spacing:-.025em;margin:2.6rem 0 .8rem}.step{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px 24px 24px 74px;margin:16px 0}.step-num{position:absolute;left:22px;top:22px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#fff;font-weight:850}.predict{background:#eaf8f2;border-left:4px solid var(--green);padding:12px 15px;border-radius:0 12px 12px 0}.observe{background:#edf5ff;border-left:4px solid var(--blue);padding:12px 15px;border-radius:0 12px 12px 0}.fallback{border:1px dashed #b5bfd0;border-radius:16px;padding:17px;margin:16px 0;color:var(--muted)}pre{overflow:auto;background:#172033;color:#e8edf7;border-radius:15px;padding:18px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.level{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}.level b{color:var(--green)}.gate{background:#172033;color:#fff;border-radius:20px;padding:24px;margin-top:32px}.gate h2{margin-top:0}.gate p{color:#cbd5e8}.sources{font-size:.9rem;color:var(--muted);border-top:1px solid var(--line);margin-top:42px;padding-top:24px}.next{display:flex;justify-content:space-between;gap:16px;margin-top:36px}.next a{background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px}@media(max-width:700px){.levels{grid-template-columns:1fr}.step{padding-left:24px;padding-top:70px}.step-num{left:24px}}@media print{nav,.next,pre{display:none}.step{break-inside:avoid}body{background:#fff}}</style></head><body>
+<nav><a href="index.html">← Lesson pack</a><span>06 · Lab</span></nav><main><div class="kicker">Azure governance · Guided lab</div><h1>Govern a product sandbox without breaking production.</h1><p class="lede">Apply tags, test a deny Policy, prove a deletion lock, inspect hierarchy, and configure a budget. The lab has permission tiers so a restricted tenant still produces useful evidence.</p><div class="meta"><span class="pill">35–50 minutes</span><span class="pill">Portal + Azure CLI</span><span class="pill">Tiered permissions</span></div>
+<div class="safety"><strong>Use only an approved sandbox.</strong><br>A Policy assignment can block deployments. A lock can block cleanup. Scope every change to the dedicated lab resource group, record each created object, and remove Policy assignments before locks and locks before deleting the resource group. If you cannot verify the scope, stop and use observation mode.</div>
+
+<section><h2>Choose your path</h2><div class="levels"><div class="level"><b>Level A · Contributor</b><br>Create/tag a resource group and test a lock if authorized.</div><div class="level"><b>Level B · Policy authority</b><br>Add a narrowly scoped deny Policy and prove enforcement.</div><div class="level"><b>Level C · Read-only</b><br>Inspect inherited Policy, locks, hierarchy, tags, and budgets without changes.</div></div></section>
+
+<section><h2>Run the lab</h2>
+<article class="step"><span class="step-num">1</span><h3>Verify context and create the governed scope</h3><pre>az account show --query '{subscription:name, id:id, tenantId:tenantId}' -o table
+
+AZ104_GOV_RG="rg-az104-governance-lab"
+AZ104_GOV_LOCATION="eastus"
+
+az group create \
+  --name "$AZ104_GOV_RG" \
+  --location "$AZ104_GOV_LOCATION" \
+  --tags Product=Pulse Environment=Lab CostCenter=Learning
+
+AZ104_GOV_RG_ID=$(az group show \
+  --name "$AZ104_GOV_RG" \
+  --query id -o tsv)</pre><p class="predict"><strong>Predict:</strong> Will a child resource automatically inherit all three tags? Record “yes” or “no” and the reason.</p><div class="fallback"><strong>Level C:</strong> Inspect an approved existing resource group and one child resource. Compare tags without editing either.</div></article>
+
+<article class="step"><span class="step-num">2</span><h3>Prove that tags do not inherit automatically</h3><p>Create a no-hourly-charge VNet without tags and compare it with the resource group.</p><pre>az network vnet create \
+  --resource-group "$AZ104_GOV_RG" \
+  --name "vnet-az104-governance-lab" \
+  --address-prefixes 10.105.0.0/16 \
+  --subnet-name "snet-app" \
+  --subnet-prefixes 10.105.1.0/24
+
+az network vnet show \
+  --resource-group "$AZ104_GOV_RG" \
+  --name "vnet-az104-governance-lab" \
+  --query tags</pre><p class="observe"><strong>Evidence:</strong> A null or empty tag set confirms that the resource-group tags did not automatically copy to the VNet. Add tags explicitly or use Policy/automation.</p></article>
+
+<article class="step"><span class="step-num">3</span><h3>Optional Level B: enforce a required tag with Policy</h3><p>Resolve the built-in definition and assign it only to the lab resource group. Verify both IDs before creating the assignment.</p><pre>AZ104_TAG_POLICY_ID=$(az policy definition list \
+  --query "[?displayName=='Require a tag on resources'].id | [0]" \
+  -o tsv)
+
+printf '%s\n' "$AZ104_TAG_POLICY_ID"
+printf '%s\n' "$AZ104_GOV_RG_ID"
+
+az policy assignment create \
+  --name "az104-require-environment-tag" \
+  --display-name "AZ-104 lab - require Environment tag" \
+  --policy "$AZ104_TAG_POLICY_ID" \
+  --scope "$AZ104_GOV_RG_ID" \
+  --params '{"tagName":{"value":"Environment"}}'</pre><p class="predict"><strong>Predict:</strong> Will a new untagged VNet succeed? Will the existing VNet be deleted?</p><p>After allowing for assignment propagation, try an untagged VNet creation and record the denial. Then add <code>--tags Environment=Lab</code> and verify success. A Deny effect blocks a non-compliant request; it does not delete an existing resource.</p><pre>az network vnet create \
+  --resource-group "$AZ104_GOV_RG" \
+  --name "vnet-az104-policy-test" \
+  --address-prefixes 10.106.0.0/16
+
+# Retry after observing the expected denial:
+az network vnet create \
+  --resource-group "$AZ104_GOV_RG" \
+  --name "vnet-az104-policy-test" \
+  --address-prefixes 10.106.0.0/16 \
+  --tags Environment=Lab</pre><div class="fallback"><strong>Level C:</strong> On an approved scope, list Policy assignments and select one. Identify definition/initiative, assignment scope, exclusions, parameters, effect, and one compliance result. Do not assume non-compliance means remediation already occurred.</div></article>
+
+<article class="step"><span class="step-num">4</span><h3>Remove Policy before testing the lock</h3><pre>az policy assignment delete \
+  --name "az104-require-environment-tag" \
+  --scope "$AZ104_GOV_RG_ID"</pre><p class="observe"><strong>Verify:</strong> Confirm the assignment is absent at the lab scope. If you used observation mode, skip this command.</p></article>
+
+<article class="step"><span class="step-num">5</span><h3>Prove CanNotDelete behavior</h3><pre>az lock create \
+  --name "az104-protect-lab" \
+  --lock-type CanNotDelete \
+  --resource-group "$AZ104_GOV_RG"
+
+# Expected to fail because the resource group is locked:
+az group delete --name "$AZ104_GOV_RG" --yes</pre><p class="predict"><strong>Predict:</strong> Can you still update the VNet? A CanNotDelete lock permits authorized modifications; ReadOnly would be more restrictive.</p><p class="observe"><strong>Evidence:</strong> Capture the error category showing the lock blocked deletion. The failure is the successful experiment.</p><div class="fallback"><strong>Level C:</strong> Inspect locks at a resource and its parents. State whether each is direct or inherited and predict a control-plane delete, control-plane update, and data-plane operation.</div></article>
+
+<article class="step"><span class="step-num">6</span><h3>Inspect management-group inheritance</h3><p>In <strong>Management groups</strong>, locate the active subscription in the hierarchy. Do not create or move management groups. Trace upward to the root and identify one inherited Policy or RBAC assignment if visible.</p><p class="observe"><strong>Explain:</strong> Why would a company place Pulse production subscriptions beneath a product or geography management group instead of assigning the same Policy separately to every subscription?</p></article>
+
+<article class="step"><span class="step-num">7</span><h3>Create or inspect a budget</h3><p>At the lab resource-group scope, open <strong>Cost Management → Budgets</strong>. If authorized, create a temporary low-value monthly budget with an email threshold, then delete it after inspection. If Cost Management is not yet available, record the access or subscription-age blocker.</p><p class="predict"><strong>Predict:</strong> If spending crosses 100%, will Azure delete or stop the VNet? No. Budgets notify; they do not inherently stop consumption.</p><p class="observe"><strong>Verify:</strong> Identify the scope, reset period, actual/forecast threshold, recipients, and evaluation delay.</p></article>
+
+<article class="step"><span class="step-num">8</span><h3>Unlock and clean up</h3><pre>az lock delete \
+  --name "az104-protect-lab" \
+  --resource-group "$AZ104_GOV_RG"
+
+az group delete --name "$AZ104_GOV_RG" --yes</pre><p class="observe"><strong>Final verification:</strong> Confirm the Policy assignment, lock, budget, and resource group you created are gone. Never delete similarly named objects without checking their full scope and creator.</p></article>
+</section>
+
+<section class="gate"><h2>Evidence gate</h2><p>Explain one observed result for each tool: RBAC permission boundary, Policy enforcement/compliance, lock behavior, tag non-inheritance, management-group inheritance, and budget notification. Also name one thing each tool does <em>not</em> do.</p></section>
+<section class="sources"><strong>Official procedures</strong><ul><li><a href="https://learn.microsoft.com/en-us/azure/governance/policy/assign-policy-portal">Assign Azure Policy</a></li><li><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/lock-resources">Configure and understand locks</a></li><li><a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources-cli">Manage tags with Azure CLI</a></li><li><a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/tutorial-acm-create-budgets">Create and manage budgets</a></li></ul><p>Ask your Codex teacher to review exact errors or unexpected results. Redact tenant IDs only if your organization treats them as sensitive; never share credentials or tokens.</p></section><div class="next"><a href="0005-governance-guardrails-theory.html">← Theory</a><a href="index.html">Finish pack →</a></div>
+</main></body></html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AZ-104 Identity &amp; Governance — Lesson Pack</title>
+  <style>
+    :root{--ink:#172033;--muted:#5d6678;--paper:#fbfcff;--card:#fff;--line:#dce3ef;--blue:#1769e0;--cyan:#12a9c7;--green:#16835f;--violet:#7157d9;--shadow:0 18px 50px rgba(24,43,77,.12)}
+    *{box-sizing:border-box} body{margin:0;color:var(--ink);background:radial-gradient(circle at 8% 5%,#dff5ff 0,transparent 28%),radial-gradient(circle at 95% 10%,#ece6ff 0,transparent 24%),var(--paper);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    main{max-width:1080px;margin:auto;padding:72px 24px 90px}.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.14em;font-weight:800;color:var(--blue)}h1{font-size:clamp(2.6rem,7vw,5.5rem);line-height:.96;letter-spacing:-.055em;margin:.3rem 0 1.2rem;max-width:850px}.lede{font-size:1.2rem;color:var(--muted);max-width:720px}.status{display:inline-flex;gap:.55rem;align-items:center;margin-top:1.25rem;background:#e9f8f1;color:#126847;border:1px solid #bae7d3;border-radius:999px;padding:.45rem .8rem;font-weight:700;font-size:.88rem}.dot{width:.55rem;height:.55rem;border-radius:50%;background:var(--green)}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:48px}.pair{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}.pair-head{padding:25px 26px 20px;border-bottom:1px solid var(--line)}.num{font-weight:900;color:var(--violet);font-size:.82rem;letter-spacing:.1em}.pair h2{margin:.35rem 0 .4rem;font-size:1.45rem;letter-spacing:-.025em}.pair p{color:var(--muted);margin:0}.links{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}a.card{display:block;text-decoration:none;color:var(--ink);background:#fff;padding:20px 22px;min-height:125px;transition:.18s ease}.card:hover{background:#f2f7ff;transform:translateY(-2px)}.kind{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:850;color:var(--blue)}.card strong{display:block;margin:.35rem 0}.card small{color:var(--muted)}
+    .method{margin-top:52px;padding:30px;border-radius:24px;background:#172033;color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:24px}.method h2{margin:0;font-size:1.65rem}.method p{margin:0;color:#cbd5e8}.steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.steps span{border:1px solid #4b5870;border-radius:999px;padding:.35rem .68rem;font-size:.8rem;color:#e8edf7}.note{margin-top:24px;color:var(--muted);font-size:.9rem}@media(max-width:760px){main{padding-top:46px}.grid,.method{grid-template-columns:1fr}.links{grid-template-columns:1fr}a.card{min-height:auto}h1{font-size:3.2rem}}@media print{body{background:#fff}.pair{box-shadow:none}.method{background:#fff;color:#000;border:1px solid #bbb}.method p,.steps span{color:#333}}
+  </style>
+</head>
+<body><main>
+  <div class="eyebrow">Microsoft Azure Administrator · AZ-104</div>
+  <h1>Identity &amp; governance, from recognition to operation.</h1>
+  <p class="lede">A six-page consolidation pack built around a realistic product company. Complete each theory page, then its matching lab. The goal is not to remember labels—it is to predict what Azure will permit, inherit, enforce, and report.</p>
+  <div class="status"><span class="dot"></span>Aligned to skills measured from 17 April 2026</div>
+
+  <section class="grid">
+    <article class="pair">
+      <div class="pair-head"><div class="num">PAIR 01</div><h2>Identity lifecycle</h2><p>Onboard employees and partners without confusing identity type, permission, license, or password recovery.</p></div>
+      <div class="links"><a class="card" href="0001-identity-lifecycle-theory.html"><span class="kind">Theory</span><strong>Model the identity lifecycle</strong><small>18 min · scenarios + quiz</small></a><a class="card" href="0002-identity-lifecycle-lab.html"><span class="kind">Lab</span><strong>Onboard a product squad</strong><small>30–45 min · portal</small></a></div>
+    </article>
+    <article class="pair">
+      <div class="pair-head"><div class="num">PAIR 02</div><h2>Effective Azure access</h2><p>Turn a business requirement into the correct principal, role and narrowest workable scope.</p></div>
+      <div class="links"><a class="card" href="0003-effective-access-theory.html"><span class="kind">Theory</span><strong>Predict effective access</strong><small>20 min · worked cases</small></a><a class="card" href="0004-effective-access-lab.html"><span class="kind">Lab</span><strong>Prove RBAC inheritance</strong><small>30–40 min · portal + CLI</small></a></div>
+    </article>
+    <article class="pair">
+      <div class="pair-head"><div class="num">PAIR 03</div><h2>Governance guardrails</h2><p>Choose Policy, locks, tags, management groups and budgets for the job each actually performs.</p></div>
+      <div class="links"><a class="card" href="0005-governance-guardrails-theory.html"><span class="kind">Theory</span><strong>Select the right guardrail</strong><small>22 min · decision matrix</small></a><a class="card" href="0006-governance-guardrails-lab.html"><span class="kind">Lab</span><strong>Govern a product sandbox</strong><small>35–50 min · tiered access</small></a></div>
+    </article>
+    <article class="pair">
+      <div class="pair-head"><div class="num">REFERENCE</div><h2>Rapid review</h2><p>Use after the lessons, not instead of them. Designed to print cleanly before a domain check.</p></div>
+      <div class="links"><a class="card" href="../reference/identity-governance-cheat-sheet.html"><span class="kind">Reference</span><strong>Identity &amp; governance map</strong><small>Definitions · traps · decisions</small></a><a class="card" href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104"><span class="kind">Official</span><strong>Live AZ-104 study guide</strong><small>Recheck before the exam ↗</small></a></div>
+    </article>
+  </section>
+
+  <section class="method"><div><h2>The feedback loop</h2><div class="steps"><span>Retrieve</span><span>Learn</span><span>Predict</span><span>Operate</span><span>Troubleshoot</span><span>Explain</span></div></div><p>Do not reveal quiz answers early. In labs, write your prediction before each change, capture evidence after it, and explain any mismatch. If a permission or license blocks you, use the observation path and record the exact blocker.</p></section>
+  <p class="note">Fictional company and product names are used so the scenarios feel operational without implying facts about a real organization. Ask your Codex teacher whenever a result differs from your prediction.</p>
+</main></body></html>

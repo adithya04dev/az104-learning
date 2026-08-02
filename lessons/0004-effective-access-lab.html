@@ -1,0 +1,61 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Effective Azure access — Lab</title>
+<style>
+:root{--ink:#172033;--muted:#5c6678;--paper:#f7f9fc;--line:#dce3ef;--blue:#1769e0;--purple:#7157d9;--green:#187b5a;--amber:#a85e00}*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#edf4ff 0,transparent 34%),var(--paper);color:var(--ink);font:16px/1.68 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}nav{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;padding:12px max(22px,calc((100vw - 940px)/2));background:rgba(247,249,252,.92);border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}nav a,a{color:var(--blue);text-decoration:none;font-weight:700}main{max-width:940px;margin:auto;padding:64px 24px 90px}.kicker{text-transform:uppercase;letter-spacing:.13em;color:var(--purple);font-size:.78rem;font-weight:850}h1{font-size:clamp(2.5rem,6vw,4.6rem);line-height:1;letter-spacing:-.05em;margin:.4rem 0 1rem}.lede{font-size:1.18rem;color:var(--muted);max-width:760px}.meta{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 38px}.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:.35rem .7rem;font-size:.82rem;font-weight:700}.safety{background:#fff4e4;border:1px solid #efd3a6;border-radius:18px;padding:20px;margin:24px 0}.safety strong{color:var(--amber)}h2{font-size:1.7rem;letter-spacing:-.025em;margin:2.6rem 0 .8rem}.step{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px 24px 24px 74px;margin:16px 0}.step-num{position:absolute;left:22px;top:22px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#7157d9;color:#fff;font-weight:850}.predict{background:#f2efff;border-left:4px solid var(--purple);padding:12px 15px;border-radius:0 12px 12px 0}.observe{background:#effaf5;border-left:4px solid var(--green);padding:12px 15px;border-radius:0 12px 12px 0}.fallback{border:1px dashed #b5bfd0;border-radius:16px;padding:17px;margin:16px 0;color:var(--muted)}pre{overflow:auto;background:#172033;color:#e8edf7;border-radius:15px;padding:18px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.gate{background:#172033;color:#fff;border-radius:20px;padding:24px;margin-top:32px}.gate h2{margin-top:0}.gate p{color:#cbd5e8}.sources{font-size:.9rem;color:var(--muted);border-top:1px solid var(--line);margin-top:42px;padding-top:24px}.next{display:flex;justify-content:space-between;gap:16px;margin-top:36px}.next a{background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px}@media(max-width:600px){.step{padding-left:24px;padding-top:70px}.step-num{left:24px}}@media print{nav,.next,pre{display:none}.step{break-inside:avoid}body{background:#fff}}</style></head><body>
+<nav><a href="index.html">← Lesson pack</a><span>04 · Lab</span></nav><main><div class="kicker">Azure RBAC · Guided lab</div><h1>Prove scope inheritance with evidence.</h1><p class="lede">Build a zero-compute-cost hierarchy, assign Reader to a group at the resource-group scope, and inspect the inherited assignment on a child VNet.</p><div class="meta"><span class="pill">30–40 minutes</span><span class="pill">Portal + Azure CLI</span><span class="pill">Resource group + VNet</span></div>
+<div class="safety"><strong>Authorization and cleanup</strong><br>Use an approved sandbox subscription. Creating role assignments requires <code>Microsoft.Authorization/roleAssignments/write</code> at the target scope, commonly through Role Based Access Control Administrator or another authorized role. A VNet itself has no hourly charge, but confirm your subscription policies. Create only the named lab resources and remove them at the end.</div>
+
+<section><h2>Scenario</h2><p>The Pulse auditors group must view everything in one lab resource group. It must not change resources and must not see unrelated resource groups. You will prove that one group assignment at the resource-group scope reaches the child VNet.</p></section>
+
+<section><h2>Run the lab</h2>
+<article class="step"><span class="step-num">1</span><h3>Check context before creating</h3><p>Open Cloud Shell or a local authenticated Azure CLI. Confirm the active tenant, subscription, and signed-in identity. Stop if the subscription is not your approved sandbox.</p><pre>az account show --query '{subscription:name, subscriptionId:id, tenantId:tenantId, signedInAs:user.name}' -o table</pre><p class="predict"><strong>Predict:</strong> At which scope do you need role-assignment write permission?</p></article>
+
+<article class="step"><span class="step-num">2</span><h3>Create the lab hierarchy</h3><p>Choose an allowed region. These commands create one resource group and one child VNet.</p><pre>AZ104_RBAC_RG="rg-az104-rbac-lab"
+AZ104_RBAC_LOCATION="eastus"
+
+az group create \
+  --name "$AZ104_RBAC_RG" \
+  --location "$AZ104_RBAC_LOCATION" \
+  --tags Purpose=AZ104 Environment=Lab
+
+az network vnet create \
+  --resource-group "$AZ104_RBAC_RG" \
+  --name "vnet-az104-rbac-lab" \
+  --address-prefixes 10.104.0.0/16 \
+  --subnet-name "snet-app" \
+  --subnet-prefixes 10.104.1.0/24</pre><p class="observe"><strong>Verify:</strong> In the portal, draw the scope chain: subscription → resource group → VNet.</p></article>
+
+<article class="step"><span class="step-num">3</span><h3>Choose the principal, role, and scope</h3><p>Use the <code>az104-pulse-engineers</code> group from the previous lab or create an approved lab security group. Record its object ID. Do not rely on a potentially duplicated display name.</p><pre>AZ104_RBAC_GROUP_ID="&lt;group-object-id&gt;"
+AZ104_RBAC_RG_ID=$(az group show \
+  --name "$AZ104_RBAC_RG" \
+  --query id -o tsv)
+
+az role assignment create \
+  --assignee-object-id "$AZ104_RBAC_GROUP_ID" \
+  --assignee-principal-type Group \
+  --role Reader \
+  --scope "$AZ104_RBAC_RG_ID"</pre><p class="predict"><strong>Predict before running:</strong> Will this assignment be direct or inherited when viewed on the VNet?</p><div class="fallback"><strong>Observation mode:</strong> If role assignment creation is blocked, open <em>Access control (IAM) → Role assignments</em> on an approved resource. Find one inherited assignment and identify its principal, role, assignment scope, and current viewing scope.</div></article>
+
+<article class="step"><span class="step-num">4</span><h3>Inspect the child scope</h3><p>Use the portal's VNet <strong>Access control (IAM)</strong> view and include inherited assignments. Then confirm through CLI.</p><pre>AZ104_RBAC_VNET_ID=$(az network vnet show \
+  --resource-group "$AZ104_RBAC_RG" \
+  --name "vnet-az104-rbac-lab" \
+  --query id -o tsv)
+
+az role assignment list \
+  --scope "$AZ104_RBAC_VNET_ID" \
+  --include-inherited \
+  --query "[?principalId=='$AZ104_RBAC_GROUP_ID'].{role:roleDefinitionName, assignedAt:scope, principal:principalName}" \
+  -o table</pre><p class="observe"><strong>Evidence:</strong> The output should show Reader assigned at the resource-group ID while you are evaluating the VNet. Role propagation can take time; a short delay is not proof of a wrong model.</p></article>
+
+<article class="step"><span class="step-num">5</span><h3>Test the boundary mentally</h3><p>Answer before looking at the explanation:</p><ol><li>Can the group modify the VNet? <strong>No—Reader does not grant writes.</strong></li><li>Can the group view a sibling resource in the same lab resource group? <strong>Yes—same parent scope.</strong></li><li>Can it view a different resource group solely because of this assignment? <strong>No—the assignment does not travel sideways.</strong></li><li>Can it create users in Entra ID? <strong>No—Azure Reader is not a directory role.</strong></li></ol></article>
+
+<article class="step"><span class="step-num">6</span><h3>Remove access, then clean up</h3><pre>az role assignment delete \
+  --assignee-object-id "$AZ104_RBAC_GROUP_ID" \
+  --role Reader \
+  --scope "$AZ104_RBAC_RG_ID"
+
+az group delete --name "$AZ104_RBAC_RG" --yes</pre><p class="observe"><strong>Verify:</strong> Confirm the role assignment is absent and the lab resource group is gone. Delete the lab group only if you created it solely for these lessons.</p></article>
+</section>
+
+<section class="gate"><h2>Evidence gate</h2><p>Show or explain: the three parts of the assignment, why the scope was the resource group, where inheritance appeared, why Reader did not authorize writes, and what permission was required to create the assignment.</p></section>
+<section class="sources"><strong>Official procedures</strong><ul><li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-steps">Role assignment model and prerequisites</a></li><li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-cli">Assign roles with Azure CLI</a></li><li><a href="https://learn.microsoft.com/en-us/azure/role-based-access-control/check-access">Check access</a></li></ul><p>Ask your Codex teacher to review the output or exact error. Do not paste tokens, credentials, or unrelated tenant data.</p></section><div class="next"><a href="0003-effective-access-theory.html">← Theory</a><a href="0005-governance-guardrails-theory.html">Next theory →</a></div>
+</main></body></html>
