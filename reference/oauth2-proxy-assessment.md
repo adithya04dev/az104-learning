@@ -13,7 +13,7 @@ The assessment focuses on existing authentication mechanisms, native Microsoft E
 
 ## 1. Existing Architecture – Runtime Platform
 
-*[Insert existing ELK authentication architecture diagram]*
+![Authentication architecture for Runtime Platform, CDP Metrics, OpenSearch, and DSO ELK](images/oauth2-proxy-architecture.png)
 
 The Runtime Platform currently uses OAuth2 Proxy as a shared authentication layer for multiple applications, such as Grafana and ELK.
 
